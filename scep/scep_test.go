@@ -89,7 +89,7 @@ func TestSignCSR(t *testing.T) {
 			x509.ExtKeyUsageClientAuth,
 		},
 	}
-	certRep, err := msg.SignCSR(cacert, cakey, tmpl)
+	certRep, err := msg.SignCSR(cacert, cakey, cacert, cakey, tmpl)
 	if err != nil {
 		t.Fatal(err)
 	}

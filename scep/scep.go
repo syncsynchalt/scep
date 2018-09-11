@@ -421,7 +421,10 @@ func (msg *PKIMessage) Fail(crtAuth *x509.Certificate, keyAuth *rsa.PrivateKey, 
 
 // SignCSR creates an x509.Certificate based on a template and Cert Authority credentials
 // returns a new PKIMessage with CertRep data
-func (msg *PKIMessage) SignCSR(crtAuth *x509.Certificate, keyAuth *rsa.PrivateKey, template *x509.Certificate) (*PKIMessage, error) {
+func (msg *PKIMessage) SignCSR(crtAuth *x509.Certificate, keyAuth *rsa.PrivateKey,
+	signerCA *x509.Certificate, signerCAKey *rsa.PrivateKey,
+	template *x509.Certificate) (*PKIMessage, error) {
+
 	// check if CSRReqMessage has already been decrypted
 	if msg.CSRReqMessage.CSR == nil {
 		if err := msg.DecryptPKIEnvelope(crtAuth, keyAuth); err != nil {
@@ -429,7 +432,8 @@ func (msg *PKIMessage) SignCSR(crtAuth *x509.Certificate, keyAuth *rsa.PrivateKe
 		}
 	}
 	// sign the CSR creating a DER encoded cert
-	crtBytes, err := x509.CreateCertificate(rand.Reader, template, crtAuth, msg.CSRReqMessage.CSR.PublicKey, keyAuth)
+	crtBytes, err := x509.CreateCertificate(rand.Reader, template, signerCA,
+		msg.CSRReqMessage.CSR.PublicKey, signerCAKey)
 	if err != nil {
 		return nil, err
 	}
@@ -440,7 +444,11 @@ func (msg *PKIMessage) SignCSR(crtAuth *x509.Certificate, keyAuth *rsa.PrivateKe
 	}
 
 	// create a degenerate cert structure
-	deg, err := DegenerateCertificates([]*x509.Certificate{crt})
+	responseCerts := []*x509.Certificate{crt}
+	if crtAuth != signerCA {
+		responseCerts = append(responseCerts, signerCA)
+	}
+	deg, err := DegenerateCertificates(responseCerts)
 	if err != nil {
 		return nil, err
 	}
@@ -481,6 +489,10 @@ func (msg *PKIMessage) SignCSR(crtAuth *x509.Certificate, keyAuth *rsa.PrivateKe
 	// this cert must be added before the signedData because the recipient will expect it
 	// as the first certificate in the array
 	signedData.AddCertificate(crt)
+	// also add the signer chain cert
+	if crtAuth != signerCA {
+		signedData.AddCertificate(signerCA)
+	}
 	// sign the attributes
 	if err := signedData.AddSigner(crtAuth, keyAuth, config); err != nil {
 		return nil, err

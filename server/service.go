@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
+	"github.com/syncsynchalt/scep/cachooser"
 	"github.com/syncsynchalt/scep/certfailer"
 	"github.com/syncsynchalt/scep/certsuccesser"
 	"github.com/syncsynchalt/scep/challenge"
@@ -53,6 +54,7 @@ type service struct {
 	csrVerifier             csrverifier.CSRVerifier
 	certSuccesser           certsuccesser.CertSuccesser
 	certFailer              certfailer.CertFailer
+	caChooser               cachooser.CAChooser
 	allowRenewal            int // days before expiry, 0 to disable
 	clientValidity          int // client cert validity in days
 
@@ -90,9 +92,20 @@ func (svc *service) PKIOperation(ctx context.Context, data []byte) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
-	ca := svc.ca[0]
+
 	if err := msg.DecryptPKIEnvelope(svc.ca[0], svc.caKey); err != nil {
 		return nil, err
+	}
+
+	ca := svc.ca
+	caKey := svc.caKey
+	if svc.caChooser != nil {
+		var caList []*x509.Certificate
+		caKey, caList, err = svc.caChooser.Choose(msg.CSRReqMessage.RawDecrypted, svc.caKeyPassword)
+		if err != nil {
+			return nil, err
+		}
+		ca = caList
 	}
 
 	var callbackErr error = nil
@@ -124,7 +137,7 @@ func (svc *service) PKIOperation(ctx context.Context, data []byte) ([]byte, erro
 		}
 
 		if !CSRIsValid {
-			certRep, err := msg.Fail(ca, svc.caKey, scep.BadRequest)
+			certRep, err := msg.Fail(svc.ca[0], svc.caKey, scep.BadRequest)
 			if err != nil {
 				callbackErr = errors.New("CSR is not valid")
 				return nil, err
@@ -162,7 +175,7 @@ func (svc *service) PKIOperation(ctx context.Context, data []byte) ([]byte, erro
 		SignatureAlgorithm: csr.SignatureAlgorithm,
 	}
 
-	certRep, err := msg.SignCSR(ca, svc.caKey, tmpl)
+	certRep, err := msg.SignCSR(svc.ca[0], svc.caKey, ca[0], caKey, tmpl)
 	if err != nil {
 		callbackErr = err
 		return nil, err
@@ -264,6 +277,15 @@ func WithCertSuccesser(certSuccesser certsuccesser.CertSuccesser) ServiceOption 
 func WithCertFailer(certFailer certfailer.CertFailer) ServiceOption {
 	return func(s *service) error {
 		s.certFailer = certFailer
+		return nil
+	}
+}
+
+// WithCAChooser is an option argument to NewService
+// which allows setting a ca chooser.
+func WithCAChooser(caChooser cachooser.CAChooser) ServiceOption {
+	return func(s *service) error {
+		s.caChooser = caChooser
 		return nil
 	}
 }

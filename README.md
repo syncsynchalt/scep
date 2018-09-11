@@ -54,11 +54,13 @@ Usage of ./cmd/scepserver/scepserver:
   -crtvalid string
     	validity for new client certificates in days (default "365")
   -csrverifierexec string
-    	will be passed the CSRs for verification
+    	command will be passed the CSRs for verification
   -certsuccesserexec string
-    	will be passed the certs on successful generation
+    	command will be passed the certs on successful generation
   -certfailerexec string
-    	will be passed the certs on failed generation
+    	command will be passed the certs on failed generation
+  -cachooserexec string
+    	command will be used to look up/generate the CA to be used for each CSR
   -debug
     	enable debug logging
   -depot string
@@ -191,7 +193,7 @@ tmpl := &x509.Certificate{
 }
 
 // create a CertRep message from the original
-certRep, err := msg.SignCSR(CAcert, CAkey, tmlp)
+certRep, err := msg.SignCSR(CAcert, CAkey, CAcert, CAkey, tmlp)
 if err != nil {
     // handle err
 }
