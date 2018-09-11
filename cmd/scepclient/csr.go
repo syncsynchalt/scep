@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/asn1"
 	"encoding/pem"
 	"errors"
 	"io/ioutil"
@@ -18,9 +19,9 @@ const (
 )
 
 type csrOptions struct {
-	cn, org, country, ou, locality, province, challenge string
-	key                                                 *rsa.PrivateKey
-	sigAlgo                                             x509.SignatureAlgorithm
+	cn, emailAddress, org, country, ou, locality, province, challenge string
+	key                                                               *rsa.PrivateKey
+	sigAlgo                                                           x509.SignatureAlgorithm
 }
 
 func loadOrMakeCSR(path string, opts *csrOptions) (*x509.CertificateRequest, error) {
@@ -40,6 +41,11 @@ func loadOrMakeCSR(path string, opts *csrOptions) (*x509.CertificateRequest, err
 		Province:           subjOrNil(opts.province),
 		Locality:           subjOrNil(opts.locality),
 		Country:            subjOrNil(opts.country),
+	}
+	if opts.emailAddress != "" {
+		var oidEmailAddress = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 1}
+		subject.ExtraNames = append(subject.ExtraNames, pkix.AttributeTypeAndValue{
+			Type: oidEmailAddress, Value: opts.emailAddress})
 	}
 	template := x509util.CertificateRequest{
 		CertificateRequest: x509.CertificateRequest{

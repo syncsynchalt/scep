@@ -36,6 +36,7 @@ type runCfg struct {
 	selfSignPath string
 	certPath     string
 	cn           string
+	emailAddress string
 	org          string
 	ou           string
 	locality     string
@@ -81,15 +82,16 @@ func run(cfg runCfg) error {
 	}
 
 	opts := &csrOptions{
-		cn:        cfg.cn,
-		org:       cfg.org,
-		country:   strings.ToUpper(cfg.country),
-		ou:        cfg.ou,
-		locality:  cfg.locality,
-		province:  cfg.province,
-		challenge: cfg.challenge,
-		key:       key,
-		sigAlgo:   sigAlgo,
+		cn:           cfg.cn,
+		emailAddress: cfg.emailAddress,
+		org:          cfg.org,
+		country:      strings.ToUpper(cfg.country),
+		ou:           cfg.ou,
+		locality:     cfg.locality,
+		province:     cfg.province,
+		challenge:    cfg.challenge,
+		key:          key,
+		sigAlgo:      sigAlgo,
 	}
 
 	csr, err := loadOrMakeCSR(cfg.csrPath, opts)
@@ -273,6 +275,7 @@ func main() {
 		flKeySize           = flag.Int("keySize", 2048, "rsa key size")
 		flOrg               = flag.String("organization", "scep-client", "organization for cert")
 		flCName             = flag.String("cn", "scepclient", "common name for certificate")
+		flEmailAddress      = flag.String("email-address", "", "emailAddress for certificate")
 		flOU                = flag.String("ou", "MDM", "organizational unit for certificate")
 		flLoc               = flag.String("locality", "", "locality for certificate")
 		flProvince          = flag.String("province", "", "province for certificate")
@@ -318,6 +321,7 @@ func main() {
 		selfSignPath: selfSignPath,
 		certPath:     *flCertPath,
 		cn:           *flCName,
+		emailAddress: *flEmailAddress,
 		org:          *flOrg,
 		country:      *flCountry,
 		locality:     *flLoc,
