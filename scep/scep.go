@@ -459,7 +459,6 @@ func (msg *PKIMessage) SignCSR(crtAuth *x509.Certificate, keyAuth *rsa.PrivateKe
 	// ugly workaround to make non-standard attributes such as emailAddress visible to pkix.Name.ToRDNSequence()
 	workaroundCopyOids(template)
 	// sign the CSR creating a DER encoded cert
-	workaroundCopyOids(template)
 	crtBytes, err := x509.CreateCertificate(rand.Reader, template, signerCA,
 		msg.CSRReqMessage.CSR.PublicKey, signerCAKey)
 	if err != nil {
@@ -517,10 +516,6 @@ func (msg *PKIMessage) SignCSR(crtAuth *x509.Certificate, keyAuth *rsa.PrivateKe
 	// this cert must be added before the signedData because the recipient will expect it
 	// as the first certificate in the array
 	signedData.AddCertificate(crt)
-	// also add the signer chain cert
-	if crtAuth != signerCA {
-		signedData.AddCertificate(signerCA)
-	}
 	// sign the attributes
 	if err := signedData.AddSigner(crtAuth, keyAuth, config); err != nil {
 		return nil, err
