@@ -97,15 +97,13 @@ func (svc *service) PKIOperation(ctx context.Context, data []byte) ([]byte, erro
 		return nil, err
 	}
 
-	ca := svc.ca
-	caKey := svc.caKey
+	signerCa := svc.ca
+	signerCaKey := svc.caKey
 	if svc.caChooser != nil {
-		var caList []*x509.Certificate
-		caKey, caList, err = svc.caChooser.Choose(msg.CSRReqMessage.RawDecrypted, svc.caKeyPassword)
+		signerCaKey, signerCa, err = svc.caChooser.Choose(msg.CSRReqMessage.RawDecrypted, svc.caKeyPassword)
 		if err != nil {
 			return nil, err
 		}
-		ca = caList
 	}
 
 	var callbackErr error = nil
@@ -175,7 +173,7 @@ func (svc *service) PKIOperation(ctx context.Context, data []byte) ([]byte, erro
 		SignatureAlgorithm: csr.SignatureAlgorithm,
 	}
 
-	certRep, err := msg.SignCSR(svc.ca[0], svc.caKey, ca[0], caKey, tmpl)
+	certRep, err := msg.SignCSR(svc.ca[0], svc.caKey, signerCa[0], signerCaKey, tmpl)
 	if err != nil {
 		callbackErr = err
 		return nil, err
