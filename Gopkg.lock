@@ -2,81 +2,129 @@
 
 
 [[projects]]
+  digest = "1:ed112122ed4a920d944cc99b9d00b0441c11685939c28462c719488d36fe29aa"
   name = "github.com/boltdb/bolt"
   packages = ["."]
+  pruneopts = ""
   revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
   version = "v1.3.1"
 
 [[projects]]
   branch = "sha256"
+  digest = "1:debb41ae4e9ca72a773c807c854ce9d6b07973eac5e5de923e12bcf37cc1bc56"
   name = "github.com/fullsailor/pkcs7"
-  packages = [".","internal/x509util"]
-  revision = "43549d8ee32d0e4f67d7536b6356db5ba49a6378"
-  source = "git@github.com:groob/pkcs7"
+  packages = [
+    ".",
+    "internal/x509util",
+  ]
+  pruneopts = ""
+  revision = "36585635cb64c53e0f176795edb64ebd7482d716"
+  source = "github.com/groob/pkcs7"
 
 [[projects]]
+  digest = "1:abc21618714d601a4d8f15c0229f1643ba991df033672bf0e50b2d514e3d365c"
   name = "github.com/go-kit/kit"
-  packages = ["endpoint","log","transport/http"]
+  packages = [
+    "endpoint",
+    "log",
+    "log/level",
+    "transport/http",
+  ]
+  pruneopts = ""
   revision = "fadad6fffe0466b19df9efd9acde5c9a52df5fa4"
   version = "v0.4.0"
 
 [[projects]]
+  digest = "1:6a4a01d58b227c4b6b11111b9f172ec5c17682b82724e58e6daf3f19f4faccd8"
   name = "github.com/go-logfmt/logfmt"
   packages = ["."]
+  pruneopts = ""
   revision = "390ab7935ee28ec6b286364bba9b4dd6410cb3d5"
   version = "v0.3.0"
 
 [[projects]]
+  digest = "1:a01080d20c45c031c13f3828c56e58f4f51d926a482ad10cc0316225097eb7ea"
   name = "github.com/go-stack/stack"
   packages = ["."]
-  revision = "817915b46b97fd7bb80e8ab6b69f01a53ac3eebf"
-  version = "v1.6.0"
+  pruneopts = ""
+  revision = "2fee6af1a9795aafbe0253a0cfbdf668e1fb8a9a"
+  version = "v1.8.0"
 
 [[projects]]
+  digest = "1:dbbeb8ddb0be949954c8157ee8439c2adfd8dc1c9510eb44a6e58cb68c3dce28"
   name = "github.com/gorilla/context"
   packages = ["."]
-  revision = "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
-  version = "v1.1"
+  pruneopts = ""
+  revision = "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+  version = "v1.1.1"
 
 [[projects]]
+  digest = "1:c2c8666b4836c81a1d247bdf21c6a6fc1ab586538ab56f74437c2e0df5c375e1"
   name = "github.com/gorilla/mux"
   packages = ["."]
-  revision = "bcd8bc72b08df0f70df986b97f95590779502d31"
-  version = "v1.4.0"
+  pruneopts = ""
+  revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+  version = "v1.6.2"
 
 [[projects]]
   branch = "master"
+  digest = "1:81927b16db0e4c8ad868af18e9afa8dfb05aa847801ba00f301a2f8e9f099752"
   name = "github.com/groob/finalizer"
-  packages = [".","logutil"]
+  packages = [
+    ".",
+    "logutil",
+  ]
+  pruneopts = ""
   revision = "4c2ed49aabdaa038f247d72d183e410757cdbe9c"
 
 [[projects]]
   branch = "master"
+  digest = "1:1ed9eeebdf24aadfbca57eb50e6455bd1d2474525e0f0d4454de8c8e9bc7ee9a"
   name = "github.com/kr/logfmt"
   packages = ["."]
+  pruneopts = ""
   revision = "b84e30acd515aadc4b783ad4ff83aff3299bdfe0"
 
 [[projects]]
+  digest = "1:7365acd48986e205ccb8652cc746f09c8b7876030d53710ea6ef7d0bd0dcd7ca"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = ""
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:fbdbb6cf8db3278412c9425ad78b26bb8eb788181f26a3ffb3e4f216b314f86a"
   name = "golang.org/x/net"
-  packages = ["context","context/ctxhttp"]
-  revision = "f5079bd7f6f74e23c4d65efa0f4ce14cbd6a3c0f"
+  packages = [
+    "context",
+    "context/ctxhttp",
+  ]
+  pruneopts = ""
+  revision = "26e67e76b6c3f6ce91f7c52def5af501b4e0f3a2"
 
 [[projects]]
   branch = "master"
+  digest = "1:ed900376500543ca05f2a2383e1f541b4606f19cd22f34acb81b17a0b90c7f3e"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "0f826bdd13b500be0f1d4004938ad978fcc6031e"
+  pruneopts = ""
+  revision = "d0be0721c37eeb5299f245a996a483160fc36940"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4bf6820df828baf8cac19af2b49ad79e752d4c4b9437fbfa91e5ffc9efca25ef"
+  input-imports = [
+    "github.com/boltdb/bolt",
+    "github.com/fullsailor/pkcs7",
+    "github.com/go-kit/kit/endpoint",
+    "github.com/go-kit/kit/log",
+    "github.com/go-kit/kit/log/level",
+    "github.com/go-kit/kit/transport/http",
+    "github.com/gorilla/mux",
+    "github.com/groob/finalizer/logutil",
+    "github.com/pkg/errors",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
