@@ -61,6 +61,8 @@ Usage of ./cmd/scepserver/scepserver:
     	command will be passed the certs on failed generation
   -cachooserexec string
     	command will be used to look up/generate the CA to be used for each CSR
+  -subjectfilterexec string
+    	command will be used to modify the subject to be signed
   -debug
     	enable debug logging
   -depot string

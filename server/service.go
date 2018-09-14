@@ -19,6 +19,7 @@ import (
 	"github.com/syncsynchalt/scep/csrverifier"
 	"github.com/syncsynchalt/scep/depot"
 	"github.com/syncsynchalt/scep/scep"
+	"github.com/syncsynchalt/scep/subjectfilter"
 )
 
 // Service is the interface for all supported SCEP server operations.
@@ -55,6 +56,7 @@ type service struct {
 	certSuccesser           certsuccesser.CertSuccesser
 	certFailer              certfailer.CertFailer
 	caChooser               cachooser.CAChooser
+	subjectFilter           subjectfilter.SubjectFilter
 	allowRenewal            int // days before expiry, 0 to disable
 	clientValidity          int // client cert validity in days
 
@@ -95,6 +97,14 @@ func (svc *service) PKIOperation(ctx context.Context, data []byte) ([]byte, erro
 
 	if err := msg.DecryptPKIEnvelope(svc.ca[0], svc.caKey); err != nil {
 		return nil, err
+	}
+
+	if svc.subjectFilter != nil {
+		newSubj, err := svc.subjectFilter.Filter(msg.CSRReqMessage.RawDecrypted)
+		if err != nil {
+			return nil, err
+		}
+		msg.CSRReqMessage.CSR.Subject = *newSubj
 	}
 
 	signerCa := svc.ca
@@ -284,6 +294,15 @@ func WithCertFailer(certFailer certfailer.CertFailer) ServiceOption {
 func WithCAChooser(caChooser cachooser.CAChooser) ServiceOption {
 	return func(s *service) error {
 		s.caChooser = caChooser
+		return nil
+	}
+}
+
+// WithSubjectFilter is an option argument to NewService
+// which allows setting a subject filter.
+func WithSubjectFilter(subjectFilter subjectfilter.SubjectFilter) ServiceOption {
+	return func(s *service) error {
+		s.subjectFilter = subjectFilter
 		return nil
 	}
 }

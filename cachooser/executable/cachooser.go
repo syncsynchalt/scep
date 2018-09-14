@@ -75,7 +75,7 @@ func (v *ExecutableCAChooser) Choose(data []byte, caKeyPass []byte) (*rsa.Privat
 	go func() {
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
-			v.logger.Log("info", "successer stderr: "+scanner.Text())
+			v.logger.Log("info", "cachooser stderr: "+scanner.Text())
 		}
 	}()
 

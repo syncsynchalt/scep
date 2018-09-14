@@ -34,6 +34,8 @@ import (
 	"github.com/syncsynchalt/scep/depot"
 	"github.com/syncsynchalt/scep/depot/file"
 	"github.com/syncsynchalt/scep/server"
+	"github.com/syncsynchalt/scep/subjectfilter"
+	"github.com/syncsynchalt/scep/subjectfilter/executable"
 )
 
 // version info
@@ -64,8 +66,9 @@ func main() {
 		flChallengePassword = flag.String("challenge", envString("SCEP_CHALLENGE_PASSWORD", ""), "enforce a challenge password")
 		flCSRVerifierExec   = flag.String("csrverifierexec", envString("SCEP_CSR_VERIFIER_EXEC", ""), "will be passed the CSRs for verification")
 		flCertSuccesserExec = flag.String("certsuccesserexec", envString("SCEP_CERT_SUCCESSER_EXEC", ""), "will be passed the certs on successful generation")
-		flCAChooserExec     = flag.String("cachooserexec", envString("SCEP_CA_CHOOSER_EXEC", ""), "will be called to select/create the CA to sign each cert")
 		flCertFailerExec    = flag.String("certfailerexec", envString("SCEP_CERT_FAILER_EXEC", ""), "will be called for failure to generate cert")
+		flCAChooserExec     = flag.String("cachooserexec", envString("SCEP_CA_CHOOSER_EXEC", ""), "will be called to select/create the CA to sign each cert")
+		flSubjectFilterExec = flag.String("subjectfilterexec", envString("SCEP_SUBJECT_FILTER_EXEC", ""), "will be called to modify the subject to be signed")
 		flDebug             = flag.Bool("debug", envBool("SCEP_LOG_DEBUG"), "enable debug logging")
 		flLogJSON           = flag.Bool("log-json", envBool("SCEP_LOG_JSON"), "output JSON logs")
 	)
@@ -157,6 +160,15 @@ func main() {
 		}
 		caChooser = executableCAChooser
 	}
+	var subjectFilter subjectfilter.SubjectFilter
+	if *flSubjectFilterExec > "" {
+		executableSubjectFilter, err := executablesubjectfilter.New(*flSubjectFilterExec, lginfo)
+		if err != nil {
+			lginfo.Log("err", err, "msg", "Could not instantiate subject filter")
+			os.Exit(1)
+		}
+		subjectFilter = executableSubjectFilter
+	}
 
 	var svc scepserver.Service // scep service
 	{
@@ -166,6 +178,7 @@ func main() {
 			scepserver.WithCertSuccesser(certSuccesser),
 			scepserver.WithCertFailer(certFailer),
 			scepserver.WithCAChooser(caChooser),
+			scepserver.WithSubjectFilter(subjectFilter),
 			scepserver.CAKeyPassword([]byte(*flCAPass)),
 			scepserver.ClientValidity(clientValidity),
 			scepserver.AllowRenewal(allowRenewal),
