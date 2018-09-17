@@ -84,11 +84,6 @@ func (v *ExecutableSubjectFilter) Filter(data []byte) (*pkix.Name, error) {
 		return nil, err
 	}
 
-	if err := cmd.Wait(); err != nil {
-		v.logger.Log("err", err)
-		return nil, err
-	}
-
 	appendRDNs := func(in pkix.RDNSequence, values []string, oid asn1.ObjectIdentifier) pkix.RDNSequence {
 		s := make([]pkix.AttributeTypeAndValue, len(values))
 		for i, value := range values {
@@ -128,6 +123,12 @@ func (v *ExecutableSubjectFilter) Filter(data []byte) (*pkix.Name, error) {
 
 		subjSeq = appendRDNs(subjSeq, []string{val}, oid)
 	}
+
+	if err := cmd.Wait(); err != nil {
+		v.logger.Log("err", err)
+		return nil, err
+	}
+
 	var newSubject pkix.Name
 	newSubject.FillFromRDNSequence(&subjSeq)
 
