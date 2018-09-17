@@ -3,12 +3,15 @@ package executablesubjectfilter
 
 import (
 	"bufio"
-	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/asn1"
 	"errors"
-	"io/ioutil"
+	"io"
+	"net/url"
 	"os"
 	"os/exec"
+	"strconv"
+	"strings"
 
 	"github.com/go-kit/kit/log"
 )
@@ -81,15 +84,65 @@ func (v *ExecutableSubjectFilter) Filter(data []byte) (*pkix.Name, error) {
 		return nil, err
 	}
 
-	outputBytes, err := ioutil.ReadAll(stdout)
-	if err != nil {
+	if err := cmd.Wait(); err != nil {
+		v.logger.Log("err", err)
 		return nil, err
 	}
 
-	csr, err := x509.ParseCertificateRequest(outputBytes)
-	if err != nil {
-		return nil, err
+	appendRDNs := func(in pkix.RDNSequence, values []string, oid asn1.ObjectIdentifier) pkix.RDNSequence {
+		s := make([]pkix.AttributeTypeAndValue, len(values))
+		for i, value := range values {
+			s[i].Type = oid
+			s[i].Value = value
+		}
+		return append(in, s)
 	}
 
-	return &csr.Subject, nil
+	reader := bufio.NewReader(stdout)
+	var subjSeq pkix.RDNSequence
+	for {
+		s, err := reader.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		s = s[:len(s)-1]
+
+		// line in the form of 1.2.3.4=urlescaped+value+for+oid
+		eq := strings.Index(s, "=")
+		if eq == -1 {
+			return nil, errors.New("Could not find delimiter in " + s)
+		}
+
+		oid, err := oidFromString(s[:eq])
+		if err != nil {
+			return nil, err
+		}
+
+		val, err := url.QueryUnescape(s[eq+1:])
+		if err != nil {
+			return nil, err
+		}
+
+		subjSeq = appendRDNs(subjSeq, []string{val}, oid)
+	}
+	var newSubject pkix.Name
+	newSubject.FillFromRDNSequence(&subjSeq)
+
+	return &newSubject, nil
+}
+
+func oidFromString(s string) ([]int, error) {
+	sa := strings.Split(s, ".")
+	oid := make([]int, len(sa))
+	for i, v := range sa {
+		ss, err := strconv.Atoi(v)
+		if err != nil {
+			return nil, err
+		}
+		oid[i] = ss
+	}
+	return oid, nil
 }
